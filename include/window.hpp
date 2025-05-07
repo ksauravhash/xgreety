@@ -1,22 +1,61 @@
 #pragma once
-
 #include <ncurses.h>
 
 namespace xgreety {
 
-// Class responsible for managing ncurses windows
+/**
+ * @class Window
+ * @brief A wrapper around an ncurses WINDOW, handling lifecycle and basic operations.
+ */
 class Window {
- private:
-  WINDOW* win;     // Pointer to the ncurses window object
-  int yMax, xMax;  // Maximum dimensions of the window (height, width)
-  int yBeg, xBeg;  // Coordinates for the window's starting position (y, x)
-
  public:
-  // Constructor that initializes the window
+  /**
+   * @brief Constructs a full-screen window using default terminal size.
+   */
   Window();
 
-  // Destructor that cleans up the window resources
+  /**
+   * @brief Constructs a window with given dimensions and position.
+   * @param nlines Number of lines (height) of the window.
+   * @param ncols Number of columns (width) of the window.
+   * @param begin_y Y-coordinate of the upper-left corner of the window.
+   * @param begin_x X-coordinate of the upper-left corner of the window.
+   */
+  Window(int nlines, int ncols, int begin_y, int begin_x);
+
+  /**
+   * @brief Destructor that releases resources used by the window.
+   */
   ~Window();
+
+  /**
+   * @brief Returns the height of the window in rows.
+   * @return Height in rows.
+   */
+  int getHeight() const;
+
+  /**
+   * @brief Returns the width of the window in columns.
+   * @return Width in columns.
+   */
+  int getWidth() const;
+
+  /**
+   * @brief Returns the Y-coordinate of the window’s origin.
+   * @return Start Y position.
+   */
+  int getStartY() const;
+
+  /**
+   * @brief Returns the X-coordinate of the window’s origin.
+   * @return Start X position.
+   */
+  int getStartX() const;
+
+ private:
+  WINDOW* win;     ///< Pointer to the ncurses window
+  int yMax, xMax;  ///< Height and width of the window
+  int yBeg, xBeg;  ///< Starting position of the window
 };
 
 }  // namespace xgreety
