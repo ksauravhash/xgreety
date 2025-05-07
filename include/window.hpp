@@ -52,6 +52,35 @@ class Window {
    */
   int getStartX() const;
 
+  /**
+   * @brief Virtual function to draw the window's contents.
+   *
+   * This function should be implemented by derived classes to handle
+   * the drawing/rendering of the window's content. This could include
+   * things like text, borders, UI elements, etc. The derived class should
+   * use ncurses functions like `wrefresh()` and `mvwprintw()` to render
+   * content onto the window.
+   *
+   * @note This is a pure virtual function and must be overridden in
+   *       derived classes.
+   */
+  virtual void draw() = 0;
+
+  /**
+   * @brief Virtual function to handle input from the user.
+   *
+   * This function is called to handle the user input within the window.
+   * The derived class should implement how to process the input (e.g.,
+   * key presses) based on its specific functionality. This could involve
+   * moving a cursor, updating UI elements, or triggering specific actions.
+   *
+   * @param ch The character or key pressed by the user.
+   *
+   * @note This is a pure virtual function and must be overridden in
+   *       derived classes.
+   */
+  virtual void handleInput(int ch) = 0;
+
  private:
   WINDOW* win;     ///< Pointer to the ncurses window
   int yMax, xMax;  ///< Height and width of the window
