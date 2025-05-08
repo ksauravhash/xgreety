@@ -2,5 +2,5 @@
 
 #include "window.hpp"
 namespace xgreety {
-class StatusBar : Window {};
+class StatusBar : public Window {};
 }  // namespace xgreety
