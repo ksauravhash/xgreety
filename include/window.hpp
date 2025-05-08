@@ -53,6 +53,17 @@ class Window {
   int getStartX() const;
 
   /**
+   * @brief Reads a single input character from this window.
+   *
+   * This function wraps the `wgetch()` ncurses call, allowing the window
+   * instance to directly capture input. It returns the character or key
+   * code entered by the user while the window is active.
+   *
+   * @return The input character or special key code (e.g., KEY_UP, KEY_ENTER).
+   */
+  int getWindowInput() const;
+
+  /**
    * @brief Virtual function to draw the window's contents.
    *
    * This function should be implemented by derived classes to handle

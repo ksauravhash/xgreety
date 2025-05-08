@@ -47,4 +47,8 @@ int Window::getStartX() const {
   return xBeg;
 }
 
+int Window::getWindowInput() const {
+  return wgetch(win);
+}
+
 }  // namespace xgreety
