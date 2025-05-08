@@ -3,6 +3,11 @@
 #include <ncurses.h>
 
 #include <cstdlib>
+#include <memory>
+#include <vector>
+
+#include "login_box.hpp"
+#include "window.hpp"
 
 namespace xgreety {
 
@@ -18,7 +23,6 @@ Greeter::~Greeter() {
   endwin();  // Ends ncurses mode and restores the terminal state
 }
 
-// Configures ncurses environment settings such as window size, color support, and input handling.
 void Greeter::configure() {
   // Get the maximum dimensions of the screen (rows and columns)
   getmaxyx(stdscr, yMax, xMax);
@@ -48,19 +52,31 @@ void Greeter::configure() {
   refresh();
 }
 
-// Runs the greeter screen with a welcome message and waits for user input to exit.
 void Greeter::run() {
-  // Display a welcome message at the top of the screen
-  printw("Welcome to the initial program.");
+  std::vector<std::unique_ptr<Window>> comp_arr;
+  comp_arr.push_back(std::make_unique<LoginBox>());
+  short int active = 0;  ///< Index of the currently active window
 
-  // Display an instruction at the second line of the screen
-  mvprintw(1, 0, "Press any key to exit.");
+  // Main loop to continuously draw windows and handle input
+  while (true) {
+    // Draw all windows in the array
+    for (auto& w : comp_arr) {
+      w->draw();
+    }
 
-  // Refresh the screen to update the output
-  refresh();
+    // Reference to the currently active window
+    Window& active_win = *comp_arr[active];
 
-  // Wait for a key press from the user to exit
-  getchar();
+    // Get input from the active window
+    int ch = active_win.getWindowInput();
+
+    // Handle TAB key press to switch focus between windows
+    if (ch == '\t') {
+      active = (active + 1) % comp_arr.size();  ///< Switch focus to the next window
+    } else {
+      active_win.handleInput(ch);  ///< Process input for the active window
+    }
+  }
 }
 
 }  // namespace xgreety
