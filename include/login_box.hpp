@@ -1,10 +1,15 @@
 #pragma once
 
+#include <ncurses.h>
+
 #include "window.hpp"
 namespace xgreety {
 class LoginBox : public Window {
-  void draw() {}
+ public:
+  LoginBox();
+  LoginBox(int nlines, int ncols, int begin_y, int begin_x);
 
-  void handleInput(int ch) {}
+  void draw();
+  void handleInput(int ch);
 };
 }  // namespace xgreety
