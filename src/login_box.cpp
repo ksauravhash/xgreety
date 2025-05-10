@@ -2,11 +2,17 @@
 
 #include <ncurses.h>
 
+#include <iostream>
+
 namespace xgreety {
-LoginBox::LoginBox() {}
+LoginBox::LoginBox() {
+  keypad(win, true);
+}
 
 LoginBox::LoginBox(int nlines, int ncols, int begin_y, int begin_x)
-    : Window(nlines, ncols, begin_y, begin_x) {}
+    : Window(nlines, ncols, begin_y, begin_x) {
+  keypad(win, true);
+}
 
 void LoginBox::getUsernames() {
   usernames.push_back("user");
@@ -25,23 +31,45 @@ void LoginBox::draw() {
 
   char password[50];  // Buffer to store the entered password
 
-  // Print labels for the input fields in the main window
-  mvwprintw(win, 2, 1, "Username: ");
-  mvwprintw(win, 5, 1, "Password: ");
+  int labelLength = 10;                // 10 chars
+  int formWidth = labelLength + cols;  // "Username: " (9) + 1 space + input box width
+  int startX = (xMax / 2) - (formWidth / 2) - 3;
+  int startY = (yMax / 2) - (lines);
+
+  int labelX = startX;
+  int usernameY = startY;
+  int passwordY = startY + 4;
+
+  int boxX = labelX + 10 + xBeg;
+  int usernameBoxY = startY + yBeg - 1;
+  int passwordBoxY = usernameBoxY + 4;
+
+  // ------------------- Print Labels for the Input Fields -------------------
+
+  // Print "Username:" label above the username input box
+  // Positioned to align nicely with the input box horizontally
+  mvwprintw(win, usernameY, labelX, "Username: ");
+
+  // Print "Password:" label above the password input box
+  // Uses the same horizontal alignment as "Username:"
+  mvwprintw(win, passwordY, labelX, "Password: ");
+
   wrefresh(win);  // Refresh to ensure the labels appear on screen
 
   // ------------------- Create Username Input Box -------------------
 
-  // Create a new window for the username input
-  // Position: (yBeg + 1, xBeg + 11) accounts for placing it to the right of the "Username:" label
-  WINDOW* usernameBox = newwin(lines, cols, yBeg + 1, xBeg + 11);
+  // Create a new window for the username input field
+  // Vertically aligned just below the "Username:" label
+  // Horizontally placed to start just after the "Username:" label
+  // Assumes "Username: " is 9 characters wide, so input box starts at xMax/2 - 9
+  WINDOW* usernameBox = newwin(lines, cols, usernameBoxY, boxX);
   box(usernameBox, 0, 0);  // Draw a border around the input box
-  wrefresh(usernameBox);   // Show the box on screen
+  wrefresh(usernameBox);   // Show the username input box on screen
 
   // ------------------- Create Password Input Box -------------------
 
   // Similar setup for the password input box, placed below the username box
-  WINDOW* passwordBox = newwin(lines, cols, yBeg + 4, xBeg + 11);
+  WINDOW* passwordBox = newwin(lines, cols, passwordBoxY, boxX);
   box(passwordBox, 0, 0);
   wrefresh(passwordBox);  // Show the password box on screen
 
@@ -72,10 +100,21 @@ void LoginBox::draw() {
   // Hide the cursor again
   curs_set(0);
 
+  wmove(win, 0, 0);
+
   // Final refresh to make sure both boxes are up to date
   wrefresh(usernameBox);
   wrefresh(passwordBox);
 }
 
-void LoginBox::handleInput(int ch) {}
+void LoginBox::handleInput(int ch) {
+  if (ch == KEY_LEFT) {
+    if (usernameChoice - 1 >= 0) usernameChoice--;
+  } else if (ch == KEY_RIGHT) {
+    usernameChoice = (usernameChoice + 1) % usernames.size();
+  }
+  wmove(win, 0, 0);
+  std::cout << (ch == KEY_LEFT) << std::endl;
+  wrefresh(win);
+}
 }  // namespace xgreety
