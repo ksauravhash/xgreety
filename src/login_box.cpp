@@ -1,120 +1,159 @@
 #include "login_box.hpp"
 
 #include <ncurses.h>
-
-#include <iostream>
+#include <algorithm>
+#include <cctype>
 
 namespace xgreety {
-LoginBox::LoginBox() {
-  keypad(win, true);
-}
+// Default constructor
+LoginBox::LoginBox() {}
 
+// Constructor initializing window dimensions and position
 LoginBox::LoginBox(int nlines, int ncols, int begin_y, int begin_x)
-    : Window(nlines, ncols, begin_y, begin_x) {
-  keypad(win, true);
+    : Window(nlines, ncols, begin_y, begin_x) {}
+
+void LoginBox::configure() {
+  keypad(win, true);  // Enable arrow keys for the main window
+
+  // Define size of the input boxes
+  int cols = 20;  // Width of each input field
+  int lines = 3;  // Height including borders
+
+  int labelLength = 10;  // Length of label "Username:" or "Password:"
+  int formWidth = labelLength + cols;
+
+  // Calculate the horizontal starting point to center the form
+  int startX = (xMax / 2) - (formWidth / 2) - 3;
+  // Vertically center the form, placing username box higher than password
+  int startY = (yMax / 2) - (lines);
+
+  // Save coordinates for labels
+  labelX = startX;
+  usernameY = startY;
+  passwordY = startY + 4;  // Leave space between fields
+
+  // Determine coordinates of the input boxes (relative to the screen)
+  int boxX = labelX + 10 + xBeg;         // 10 = length of label + space
+  int usernameBoxY = startY + yBeg - 1;  // Adjust upward to align with label
+  int passwordBoxY = usernameBoxY + 4;   // Leave a row between boxes
+
+  // Create new ncurses windows for input fields
+  usernameBox = newwin(lines, cols, usernameBoxY, boxX);
+  passwordBox = newwin(lines, cols, passwordBoxY, boxX);
+
+  done = false;  // Reset state flag
 }
 
 void LoginBox::getUsernames() {
+  // Hardcoded example usernames (e.g., can be replaced with real data later)
   usernames.push_back("user");
   usernames.push_back("tomato");
 }
 
 void LoginBox::draw() {
-  // Clear the main window and draw a box around it
+  // Clear existing content and draw outer box
   wclear(win);
   box(win, 0, 0);
-  wrefresh(win);  // Refresh the main window to reflect the changes
+  wrefresh(win);
 
-  // Dimensions for the input boxes
-  int cols = 20;  // Width of the input boxes
-  int lines = 3;  // Height of the input boxes
-
-  char password[50];  // Buffer to store the entered password
-
-  int labelLength = 10;                // 10 chars
-  int formWidth = labelLength + cols;  // "Username: " (9) + 1 space + input box width
-  int startX = (xMax / 2) - (formWidth / 2) - 3;
-  int startY = (yMax / 2) - (lines);
-
-  int labelX = startX;
-  int usernameY = startY;
-  int passwordY = startY + 4;
-
-  int boxX = labelX + 10 + xBeg;
-  int usernameBoxY = startY + yBeg - 1;
-  int passwordBoxY = usernameBoxY + 4;
-
-  // ------------------- Print Labels for the Input Fields -------------------
-
-  // Print "Username:" label above the username input box
-  // Positioned to align nicely with the input box horizontally
+  // Display labels above the input boxes
   mvwprintw(win, usernameY, labelX, "Username: ");
-
-  // Print "Password:" label above the password input box
-  // Uses the same horizontal alignment as "Username:"
   mvwprintw(win, passwordY, labelX, "Password: ");
+  wrefresh(win);
 
-  wrefresh(win);  // Refresh to ensure the labels appear on screen
+  // Draw borders for username and password boxes
+  box(usernameBox, 0, 0);
+  wrefresh(usernameBox);
 
-  // ------------------- Create Username Input Box -------------------
-
-  // Create a new window for the username input field
-  // Vertically aligned just below the "Username:" label
-  // Horizontally placed to start just after the "Username:" label
-  // Assumes "Username: " is 9 characters wide, so input box starts at xMax/2 - 9
-  WINDOW* usernameBox = newwin(lines, cols, usernameBoxY, boxX);
-  box(usernameBox, 0, 0);  // Draw a border around the input box
-  wrefresh(usernameBox);   // Show the username input box on screen
-
-  // ------------------- Create Password Input Box -------------------
-
-  // Similar setup for the password input box, placed below the username box
-  WINDOW* passwordBox = newwin(lines, cols, passwordBoxY, boxX);
   box(passwordBox, 0, 0);
-  wrefresh(passwordBox);  // Show the password box on screen
+  wrefresh(passwordBox);
 
-  // ------------------- Input Handling -------------------
-
-  // Show the cursor (value 2 = highly visible, terminal dependent)
-  curs_set(2);
-
-  // Enable input echo for the username
-  echo();
-
-  // Move the cursor inside the username box (1,1) due to border offset
+  // Set cursor inside the username box initially
   wmove(usernameBox, 1, 1);
 
-  // Pre-fill the username box with the selected username (from a list)
-  wprintw(usernameBox, "%s", usernames[usernameChoice].c_str());
-  wrefresh(usernameBox);  // Ensure pre-filled username appears
+  handleInnerWindowDraw();  // Fill in default values or current selections
+}
 
-  // Disable echo to hide password input
-  noecho();
+void LoginBox::handleInput(int ch) {
+  if (done) {
+    noecho();     // Disable echo if login is finished
+    curs_set(0);  // Hide cursor
+    return;
+  }
 
-  // Move cursor to the password box and allow input
-  wmove(passwordBox, 1, 1);
+  if (ch == KEY_DOWN || ch == KEY_UP) {
+    // Switch focus between username and password fields
+    currentActive = (currentActive + 1) % 2;
+  } else {
+    if (currentActive == 0) {
+      // Navigation within username list
+      curs_set(0);
+      if (ch == KEY_LEFT && usernameChoice - 1 >= 0) {
+        usernameChoice--;
+      } else if (ch == KEY_RIGHT) {
+        // Loop around the list if at end
+        usernameChoice = (usernameChoice + 1) % usernames.size();
+      }
+    } else {
+      // Password entry handling
+      if (std::isprint(ch)) {
+        // Only add printable characters to password
+        password.push_back(ch);
+        currentPos++;
+      } else if (ch == KEY_BACKSPACE) {
+        // Allow deleting characters
+        if (!password.empty()) {
+          password.pop_back();
+          currentPos--;
+        }
+      }
+    }
+  }
 
-  // Read password securely into buffer (input will not be displayed)
-  wgetnstr(passwordBox, password, sizeof(password) - 1);
+  // Show cursor if not done and focused on password field
+  curs_set(!done && currentActive);
+  handleInnerWindowDraw();  // Update UI with new inputs or selections
+}
 
-  // Hide the cursor again
-  curs_set(0);
+void LoginBox::handleInnerWindowDraw() {
+  // Clear previous input contents visually
+  mvwprintw(usernameBox, 1, 1, "                  ");
+  mvwprintw(passwordBox, 1, 1, "                  ");
 
-  wmove(win, 0, 0);
+  // Highlight currently active field
+  attr_t standout = A_STANDOUT;
+  if (currentActive == 0) {
+    wattron(usernameBox, standout);
+  }
 
-  // Final refresh to make sure both boxes are up to date
+  // Add arrows to indicate selectable usernames
+  if (usernameChoice > 0) mvwprintw(usernameBox, 1, 1, "<");
+  if (usernameChoice < usernames.size() - 1) mvwprintw(usernameBox, 1, 18, ">");
+
+  // Remove highlight after drawing username field
+  wattroff(usernameBox, standout);
+
+  // Show selected username
+  mvwprintw(usernameBox, 1, 2, "%s", usernames[usernameChoice].c_str());
+
+  // Display password using asterisks
+  mvwprintw(passwordBox, 1, 2, "%s", getMaskedPassword().c_str());
+
+  // Move cursor to correct position in password field
+  if (currentActive) {
+    wmove(passwordBox, 1, (currentPos < 16 ? currentPos : 16) + 2);
+  }
+
   wrefresh(usernameBox);
   wrefresh(passwordBox);
 }
 
-void LoginBox::handleInput(int ch) {
-  if (ch == KEY_LEFT) {
-    if (usernameChoice - 1 >= 0) usernameChoice--;
-  } else if (ch == KEY_RIGHT) {
-    usernameChoice = (usernameChoice + 1) % usernames.size();
+std::string LoginBox::getMaskedPassword() {
+  std::string masked;
+  // Show up to 16 asterisks (to match input box width)
+  for (int i = 0; i < std::min(password.length(), (size_t)16); i++) {
+    masked.push_back('*');
   }
-  wmove(win, 0, 0);
-  std::cout << (ch == KEY_LEFT) << std::endl;
-  wrefresh(win);
+  return masked;
 }
 }  // namespace xgreety

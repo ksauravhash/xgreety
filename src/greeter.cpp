@@ -61,16 +61,17 @@ void Greeter::run() {
   comp_arr.push_back(std::make_unique<LoginBox>(boxHeight, boxWidth, yMax / 2 - boxHeight / 2,
                                                 xMax / 2 - boxWidth / 2));
   LoginBox* loginBox = dynamic_cast<LoginBox*>(comp_arr[0].get());
+  loginBox->configure();
   loginBox->getUsernames();
   short int active = 0;  ///< Index of the currently active window
 
+  // Draw all windows in the array
+  for (auto& w : comp_arr) {
+    w->draw();
+  }
+
   // Main loop to continuously draw windows and handle input
   while (true) {
-    // Draw all windows in the array
-    for (auto& w : comp_arr) {
-      w->draw();
-    }
-
     // Reference to the currently active window
     Window& active_win = *comp_arr[active];
 
