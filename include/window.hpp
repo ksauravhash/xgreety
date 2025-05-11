@@ -92,6 +92,8 @@ class Window {
    */
   virtual void handleInput(int ch) = 0;
 
+  virtual void configure() {}
+
  protected:
   WINDOW* win;     ///< Pointer to the ncurses window
   int yMax, xMax;  ///< Height and width of the window
