@@ -98,7 +98,7 @@ void LoginBox::handleInput(int ch) {
       // Password entry handling
       if (std::isprint(ch)) {
         // Only add printable characters to password
-        password.push_back(ch);
+        password.insert(password.begin() + currentPos, ch);
         currentPos++;
       } else if (ch == KEY_BACKSPACE) {
         // Allow deleting characters
@@ -106,6 +106,10 @@ void LoginBox::handleInput(int ch) {
           password.pop_back();
           currentPos--;
         }
+      } else if (ch == KEY_LEFT) {
+        if (currentPos > 0) currentPos--;
+      } else if (ch == KEY_RIGHT) {
+        if (((size_t)currentPos) < password.length()) currentPos++;
       }
     }
   }
@@ -155,5 +159,11 @@ std::string LoginBox::getMaskedPassword() {
     masked.push_back('*');
   }
   return masked;
+}
+
+void LoginBox::login() {
+  // Overwrite the contents of the password string with null characters (0)
+  // This is a security measure to ensure the password does not remain in memory
+  std::fill(password.begin(), password.end(), 0);
 }
 }  // namespace xgreety

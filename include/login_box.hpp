@@ -1,8 +1,10 @@
 #pragma once
 
 #include <ncurses.h>
+
 #include <string>
 #include <vector>
+
 #include "window.hpp"
 
 namespace xgreety {
@@ -18,13 +20,14 @@ class LoginBox : public Window {
  private:
   int usernameChoice = 0;              ///< Index of the currently selected username.
   std::vector<std::string> usernames;  ///< List of system or mock usernames to choose from.
-  std::string password;                ///< Stores the entered password as plaintext (to be handled securely).
-  
-  WINDOW *usernameBox, *passwordBox;   ///< Separate ncurses windows for input fields.
-  int usernameY, passwordY, labelX;    ///< Coordinates for rendering UI elements (Y position for inputs and label X offset).
-  int currentActive = 0;               ///< Indicates whether the username (0) or password (1) field is active.
-  int currentPos = 0;                  ///< Cursor position within the password field.
-  bool done;                           ///< Whether the login process has completed or exited.
+  std::string password;  ///< Stores the entered password as plaintext (to be handled securely).
+
+  WINDOW *usernameBox, *passwordBox;  ///< Separate ncurses windows for input fields.
+  int usernameY, passwordY, labelX;   ///< Coordinates for rendering UI elements (Y position for
+                                      ///< inputs and label X offset).
+  int currentActive = 0;  ///< Indicates whether the username (0) or password (1) field is active.
+  int currentPos = 0;     ///< Cursor position within the password field.
+  bool done;              ///< Whether the login process has completed or exited.
 
   /**
    * @brief Helper method to draw the inner components of the login box (labels and borders).
@@ -37,6 +40,12 @@ class LoginBox : public Window {
    * @return std::string The masked string with asterisks.
    */
   std::string getMaskedPassword();
+
+  /**
+   * @brief Executes the login operation using the captured credentials.
+   * Placeholder for integrating authentication backends like PAM.
+   */
+  void login();
 
  public:
   /**
@@ -81,12 +90,6 @@ class LoginBox : public Window {
    * Should be called before drawing or running interactions.
    */
   void configure();
-
-  /**
-   * @brief Executes the login operation using the captured credentials.
-   * Placeholder for integrating authentication backends like PAM.
-   */
-  void login();
 };
 
 }  // namespace xgreety
