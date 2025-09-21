@@ -21,9 +21,19 @@
 ### AUR (coming soon)
 Once the project reaches a usable state, an AUR package will be made available for Arch-based distributions.
 
-### Manual Build
+### Building and Running
 
-> ⚠️ Currently an empty project. Instructions will be added once the first build is available.
+To build and run the project:
+
+1. Build the project:
+   ```bash
+   ./build.sh
+   ```
+
+2. Build and run the project:
+   ```bash
+   ./run.sh
+   ```
 
 ---
 
