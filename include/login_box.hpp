@@ -66,6 +66,14 @@ class LoginBox : public Window {
   LoginBox(int nlines, int ncols, int begin_y, int begin_x);
 
   /**
+   * @brief Destructor that cleans up the username and password input windows.
+   *
+   * Properly releases the ncurses window resources allocated by newwin()
+   * during the configure() call to prevent memory leaks.
+   */
+  ~LoginBox();
+
+  /**
    * @brief Loads a list of usernames.
    * This can pull from system accounts or a predefined list for testing.
    */

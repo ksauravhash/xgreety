@@ -6,11 +6,23 @@
 
 namespace xgreety {
 // Default constructor
-LoginBox::LoginBox() {}
+LoginBox::LoginBox() : usernameBox(nullptr), passwordBox(nullptr) {}
 
 // Constructor initializing window dimensions and position
 LoginBox::LoginBox(int nlines, int ncols, int begin_y, int begin_x)
-    : Window(nlines, ncols, begin_y, begin_x) {}
+    : Window(nlines, ncols, begin_y, begin_x), usernameBox(nullptr), passwordBox(nullptr) {}
+
+// Destructor: Clean up ncurses windows to prevent memory leaks
+LoginBox::~LoginBox() {
+  if (usernameBox) {
+    delwin(usernameBox);
+    usernameBox = nullptr;
+  }
+  if (passwordBox) {
+    delwin(passwordBox);
+    passwordBox = nullptr;
+  }
+}
 
 void LoginBox::configure() {
   keypad(win, true);  // Enable arrow keys for the main window
