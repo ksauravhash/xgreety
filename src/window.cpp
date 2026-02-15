@@ -51,4 +51,8 @@ int Window::getWindowInput() const {
   return wgetch(win);
 }
 
+WINDOW* Window::getWindowHandle() const {
+  return win;
+}
+
 }  // namespace xgreety

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "login_box.hpp"
+#include "status_bar.hpp"
 #include "window.hpp"
 
 namespace xgreety {
@@ -56,6 +57,13 @@ void Greeter::configure() {
 
 void Greeter::run() {
   std::vector<std::unique_ptr<Window>> comp_arr;
+  
+  // Create status bar at the top of the screen
+  int statusBarHeight = 3;
+  auto statusBar = std::make_unique<StatusBar>(statusBarHeight, xMax, 0, 0);
+  statusBar->configure();
+  
+  // Create login box in the center
   int boxHeight = 16;
   int boxWidth = 60;
   comp_arr.push_back(std::make_unique<LoginBox>(boxHeight, boxWidth, yMax / 2 - boxHeight / 2,
@@ -65,23 +73,30 @@ void Greeter::run() {
   loginBox->getUsernames();
   short int active = 0;  ///< Index of the currently active window
 
-  // Draw all windows in the array
+  // Initial draw of all windows
+  statusBar->draw();
   for (auto& w : comp_arr) {
     w->draw();
   }
-
-  // Main loop to continuously draw windows and handle input
+  
+  // Main loop to continuously update display and handle input
   while (true) {
+    // Update status bar every iteration (it only redraws when time changes)
+    statusBar->draw();
+    
     // Reference to the currently active window
     Window& active_win = *comp_arr[active];
 
+    // Set timeout on the active window for non-blocking input (allows status bar to update)
+    wtimeout(active_win.getWindowHandle(), 100);  // 100ms timeout
+    
     // Get input from the active window
     int ch = active_win.getWindowInput();
 
     // Handle TAB key press to switch focus between windows
     if (ch == '\t') {
       active = (active + 1) % comp_arr.size();  ///< Switch focus to the next window
-    } else {
+    } else if (ch != ERR) {  // ERR means timeout, no input received
       active_win.handleInput(ch);  ///< Process input for the active window
     }
   }

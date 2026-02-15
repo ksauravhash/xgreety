@@ -64,6 +64,16 @@ class Window {
   int getWindowInput() const;
 
   /**
+   * @brief Returns the underlying ncurses WINDOW pointer.
+   *
+   * This allows direct access to the ncurses window for advanced operations
+   * like setting timeouts, attributes, etc.
+   *
+   * @return Pointer to the ncurses WINDOW.
+   */
+  WINDOW* getWindowHandle() const;
+
+  /**
    * @brief Virtual function to draw the window's contents.
    *
    * This function should be implemented by derived classes to handle
